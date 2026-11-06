@@ -1,792 +1,449 @@
-\# 金融商品喜好清單管理系統
+# 金融商品喜好清單管理系統
 
+## 1. 專案介紹
 
+本專案為金融商品喜好清單管理系統，使用 **Spring Boot + Vue 3 + MyBatis + MySQL** 開發，提供金融商品及喜好清單的新增、查詢、修改與刪除功能。
 
-\## 1. 專案介紹
+系統透過 RESTful API 進行前後端資料交換，所有資料庫操作均透過 MyBatis 呼叫 Stored Procedures 執行。
 
+使用者可以選擇金融商品、指定預計扣款帳號與購買數量，系統會自動計算商品總金額、手續費及預計扣款總金額。
 
-
-本專案為金融商品喜好清單管理系統，使用 Spring Boot 建立 RESTful API，搭配 Vue 3 開發前端介面，並使用 MySQL 儲存資料。
-
-
-
-資料庫操作透過 MyBatis 呼叫 Stored Procedures 執行，支援金融商品與喜好清單的新增、查詢、修改及刪除。
-
-
-
-系統可根據商品價格、手續費率及預計購買數量，自動計算商品總金額、手續費及預計扣款總金額。
-
-
-
-\## 2. 使用技術
-
-
+## 2. 使用技術
 
 | 分類 | 技術 |
-
 |---|---|
-
-| 後端 | Java 17、Spring Boot |
-
+| 後端 | Java 17、Spring Boot 4 |
 | 前端 | Vue 3、Vite、JavaScript |
-
-| API | RESTful API |
-
+| API | RESTful API、JSON |
 | HTTP 請求 | Axios |
-
 | 資料庫 | MySQL 8.0 |
-
 | 資料存取 | MyBatis |
-
 | SQL | Stored Procedures |
-
 | 交易管理 | Spring `@Transactional` |
-
 | 專案建置 | Maven、npm |
-
 | API 測試 | Postman |
+| 版本控制 | Git、GitHub |
 
-
-
-\## 3. 系統架構
-
-
+## 3. 系統架構
 
 系統採用三層式架構：
 
-
-
 ```text
-
-Presentation Layer
-
+Presentation Layer（前端）
 Vue 3 + Axios
-
-&#x20;       |
-
-&#x20;       | HTTP / JSON
-
-&#x20;       v
-
-Application Layer
-
+        |
+        | HTTP / JSON
+        v
+Application Layer（後端）
 Spring Boot
-
-&#x20;       |
-
-&#x20;       v
-
+        |
+        v
 Controller
-
-&#x20;       |
-
-&#x20;       v
-
+        |
+        v
 Service
-
-&#x20;       |
-
-&#x20;       v
-
-MyBatis Mapper
-
-&#x20;       |
-
-&#x20;       | CALL Stored Procedure
-
-&#x20;       v
-
-Data Layer
-
+        |
+        v
+DAO / MyBatis Mapper
+        |
+        | CALL Stored Procedure
+        v
+Data Layer（資料庫）
 MySQL
-
 ```
 
+各層職責：
 
+- **Controller**：接收 HTTP Request，回傳 API Response。
+- **Service**：處理業務邏輯及 Transaction。
+- **DAO / Mapper**：透過 MyBatis 呼叫 Stored Procedures。
+- **Database**：執行資料查詢、修改、驗證及金額計算。
+- **Vue**：提供使用者操作介面及資料顯示。
 
-前端負責使用者介面及資料顯示；後端負責業務邏輯與交易管理；資料庫透過 Stored Procedures 執行資料操作與金額計算。
-
-
-
-\## 4. 主要功能
-
-
-
-\### 商品管理
-
-
-
-\- 查詢商品清單
-
-\- 新增商品
-
-\- 修改商品名稱、價格及手續費率
-
-\- 刪除未被喜好清單引用的商品
-
-\- 修改商品價格或手續費率時，同步更新相關喜好清單金額
-
-
-
-\### 喜好清單管理
-
-
-
-\- 查詢喜好清單
-
-\- 將既有商品加入喜好清單
-
-\- 新增商品並同時加入喜好清單
-
-\- 設定預計扣款帳號及購買數量
-
-\- 修改喜好清單資料
-
-\- 刪除喜好清單資料
-
-\- 顯示使用者電子郵件、商品資訊與預計扣款金額
-
-
-
-\### 金額計算
-
-
-
-系統依照以下公式計算：
-
-
+## 4. 專案目錄結構
 
 ```text
+business-product/
+├── BusinessProductManagement/
+│   ├── DB/
+│   │   ├── 01_schema.sql
+│   │   ├── 02_data.sql
+│   │   └── 03_procedures.sql
+│   ├── src/
+│   │   └── main/
+│   │       ├── java/
+│   │       │   └── com/example/demo/
+│   │       │       ├── controller/
+│   │       │       ├── service/
+│   │       │       ├── dao/
+│   │       │       ├── dto/
+│   │       │       └── model/
+│   │       └── resources/
+│   │           ├── mappers/
+│   │           └── application.properties
+│   └── pom.xml
+│
+├── business-product-frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── views/
+│   │   └── App.vue
+│   └── package.json
+│
+└── README.md
+```
 
+## 5. 主要功能
+
+### 5.1 商品管理
+
+- 查詢所有商品
+- 新增商品
+- 修改商品名稱、價格及手續費率
+- 刪除商品
+- 修改商品價格或手續費率時，同步更新相關喜好清單的金額
+- 已被喜好清單使用的商品不可直接刪除
+
+### 5.2 喜好清單管理
+
+- 查詢所有喜好清單
+- 選擇既有商品加入喜好清單
+- 新增商品並同時加入喜好清單
+- 指定預計扣款帳號
+- 設定預計購買數量
+- 修改喜好清單資料
+- 刪除喜好清單資料
+- 顯示使用者電子郵件及商品相關資訊
+
+### 5.3 金額計算
+
+系統根據商品價格、購買數量及手續費率，自動計算：
+
+```text
 商品總金額 = 商品價格 × 購買數量
-
-
 
 手續費 = 商品總金額 × 手續費率
 
-
-
 預計扣款總金額 = 商品總金額 + 手續費
-
 ```
 
+金額計算由 Stored Procedures 執行，前端不直接決定儲存的金額。
 
+## 6. 資料庫建立方式
 
-計算由資料庫 Stored Procedures 執行，避免由前端自行決定最終儲存金額。
+### 6.1 環境需求
 
-
-
-\## 5. 專案目錄
-
-
-
-建議將前後端及資料庫腳本整理為：
-
-
-
-```text
-
-business-product/
-
-├── BusinessProductManagement/
-
-│   ├── src/
-
-│   │   └── main/
-
-│   │       ├── java/
-
-│   │       │   └── com/example/demo/
-
-│   │       │       ├── controller/
-
-│   │       │       ├── service/
-
-│   │       │       ├── dao/
-
-│   │       │       ├── dto/
-
-│   │       │       └── model/
-
-│   │       └── resources/
-
-│   │           ├── mappers/
-
-│   │           └── application.properties
-
-│   └── pom.xml
-
-│
-
-├── business-product-frontend/
-
-│   ├── src/
-
-│   │   ├── api/
-
-│   │   ├── views/
-
-│   │   └── App.vue
-
-│   └── package.json
-
-│
-
-├── DB/
-
-│   ├── 01\_schema.sql
-
-│   ├── 02\_data.sql
-
-│   └── 03\_procedures.sql
-
-│
-
-└── README.md
-
-```
-
-
-
-\## 6. 資料庫建立
-
-
-
-\### 6.1 建立資料庫
-
-
-
-使用 MySQL Workbench，依序執行 `DB` 資料夾內的 SQL：
-
-
-
-1\. `01\_schema.sql`：建立資料庫及資料表。
-
-2\. `02\_data.sql`：新增測試資料。
-
-3\. `03\_procedures.sql`：建立 Stored Procedures。
-
-
+- MySQL 8.0
+- MySQL Workbench（建議）
 
 資料庫名稱：
 
-
-
 ```sql
-
-business\_product
-
+business_product
 ```
 
+### 6.2 執行 SQL
 
+進入：
 
-\### 6.2 資料表
+```text
+BusinessProductManagement/DB/
+```
 
+依序執行：
 
+1. `01_schema.sql`：建立資料庫及資料表。
+2. `02_data.sql`：建立測試資料。
+3. `03_procedures.sql`：建立 Stored Procedures。
 
-| 資料表 | 說明 |
+請在全新資料庫執行初始化腳本，避免與既有資料衝突。
 
+### 6.3 資料表
+
+| 資料表 | 功能 |
 |---|---|
+| `user` | 儲存使用者基本資料、電子郵件及扣款帳號 |
+| `product` | 儲存商品名稱、價格及手續費率 |
+| `like_list` | 儲存喜好商品、購買數量及預計扣款金額 |
 
-| `user` | 使用者基本資料及扣款帳號 |
+資料表關聯：
 
-| `product` | 商品名稱、價格、手續費率 |
+- `like_list.account` → `user.account`
+- `like_list.no` → `product.no`
 
-| `like\_list` | 喜好清單、購買數量及預計扣款金額 |
+使用 InnoDB 儲存引擎，支援外鍵約束及 Transaction。
 
-
-
-`like\_list.account` 關聯 `user.account`，`like\_list.no` 關聯 `product.no`。
-
-
-
-\### 6.3 Stored Procedures
-
-
+### 6.4 Stored Procedures
 
 共使用 9 支 Stored Procedures：
 
+| Stored Procedure | 功能 |
+|---|---|
+| `sp_get_all_users` | 查詢所有使用者 |
+| `sp_get_all_products` | 查詢所有商品 |
+| `sp_add_product` | 新增商品 |
+| `sp_update_product` | 修改商品 |
+| `sp_delete_product` | 刪除商品 |
+| `sp_get_all_like_list` | 查詢喜好清單 |
+| `sp_add_like_list` | 新增喜好清單 |
+| `sp_update_like_list` | 修改喜好清單 |
+| `sp_delete_like_list` | 刪除喜好清單 |
 
+## 7. 後端啟動方式
 
-```text
+### 7.1 環境需求
 
-sp\_get\_all\_users
+- JDK 17
+- Maven
+- MySQL 8.0
 
-sp\_get\_all\_products
-
-sp\_add\_product
-
-sp\_update\_product
-
-sp\_delete\_product
-
-sp\_get\_all\_like\_list
-
-sp\_add\_like\_list
-
-sp\_update\_like\_list
-
-sp\_delete\_like\_list
-
-```
-
-
-
-\## 7. 後端啟動方式
-
-
-
-\### 7.1 環境需求
-
-
-
-\- JDK 17
-
-\- Maven
-
-\- MySQL 8.0
-
-
-
-\### 7.2 設定資料庫連線
-
-
+### 7.2 設定資料庫連線
 
 修改：
 
-
-
 ```text
-
 BusinessProductManagement/src/main/resources/application.properties
-
 ```
 
-
-
-資料庫設定範例：
-
-
+資料庫連線設定範例：
 
 ```properties
-
-spring.application.name=BusinessProductManagement
-
-
-
-spring.datasource.url=jdbc:mysql://localhost:3306/business\_product
-
+spring.datasource.url=jdbc:mysql://localhost:3306/business_product
 spring.datasource.username=root
-
-spring.datasource.password=${DB\_PASSWORD}
-
-
-
+spring.datasource.password=${DB_PASSWORD}
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
-
-
-mybatis.mapper-locations=classpath:mappers/\*.xml
-
+mybatis.mapper-locations=classpath:mappers/*.xml
 mybatis.configuration.map-underscore-to-camel-case=true
-
 ```
 
+其中 `DB_PASSWORD` 為環境變數，請設定為本機 MySQL 密碼。
 
-
-啟動前需設定環境變數 `DB\_PASSWORD`，填入本機 MySQL 密碼。
-
-
-
-Windows PowerShell 範例：
-
-
+Windows PowerShell：
 
 ```powershell
-
-$env:DB\_PASSWORD="你的MySQL密碼"
-
+$env:DB_PASSWORD="你的MySQL密碼"
 ```
 
+### 7.3 啟動 Spring Boot
 
-
-\### 7.3 啟動後端
-
-
-
-進入後端資料夾：
-
-
+進入後端專案：
 
 ```bash
-
 cd BusinessProductManagement
-
 ```
-
-
 
 執行：
 
-
-
 ```bash
-
 mvn spring-boot:run
-
 ```
-
-
 
 後端預設網址：
 
-
-
 ```text
-
 http://localhost:8080
-
 ```
 
+## 8. 前端啟動方式
 
+### 8.1 環境需求
 
-\## 8. 前端啟動方式
+- Node.js（版本需符合專案 Vite 的要求）
+- npm
 
+### 8.2 安裝與啟動
 
-
-環境需求：Node.js 與 npm，建議使用符合 Vite 8 要求的 Node.js 版本。
-
-
-
-進入前端資料夾：
-
-
+進入前端專案：
 
 ```bash
-
 cd business-product-frontend
-
 ```
-
-
 
 安裝套件：
 
-
-
 ```bash
-
 npm install
-
 ```
-
-
 
 啟動開發伺服器：
 
-
-
 ```bash
-
 npm run dev
-
 ```
 
-
-
-預設開發網址：
-
-
+前端預設網址：
 
 ```text
-
 http://localhost:5173
-
 ```
 
+前端透過 Axios 呼叫 Spring Boot REST API。
 
+啟動順序建議：
 
-前端透過 Axios 呼叫後端 API：
+1. MySQL
+2. Spring Boot
+3. Vue
 
+## 9. RESTful API 說明
 
+### 9.1 使用者 API
 
-```javascript
-
-const api = axios.create({
-
-&#x20;   baseURL: "http://localhost:8080/api",
-
-&#x20;   timeout: 10000
-
-});
-
-```
-
-
-
-請先確認 MySQL 與 Spring Boot 已啟動，再操作前端。
-
-
-
-\## 9. REST API
-
-
-
-\### 使用者
-
-
-
-| Method | API | 功能 |
-
+| Method | Endpoint | 功能 |
 |---|---|---|
-
 | GET | `/api/users` | 查詢所有使用者 |
 
+### 9.2 商品 API
 
-
-\### 商品管理
-
-
-
-| Method | API | 功能 |
-
+| Method | Endpoint | 功能 |
 |---|---|---|
-
-| GET | `/api/products` | 查詢商品 |
-
+| GET | `/api/products` | 查詢所有商品 |
 | POST | `/api/products` | 新增商品 |
-
 | PUT | `/api/products/{no}` | 修改商品 |
-
 | DELETE | `/api/products/{no}` | 刪除商品 |
 
-
-
-新增商品 Request Body：
-
-
+新增商品範例：
 
 ```json
-
 {
-
-&#x20; "productName": "測試金融商品",
-
-&#x20; "price": 10000,
-
-&#x20; "feeRate": 0.05
-
+  "productName": "測試金融商品",
+  "price": 10000,
+  "feeRate": 0.05
 }
-
 ```
 
+### 9.3 喜好清單 API
 
-
-\### 喜好清單管理
-
-
-
-| Method | API | 功能 |
-
+| Method | Endpoint | 功能 |
 |---|---|---|
-
 | GET | `/api/like-list` | 查詢喜好清單 |
-
 | POST | `/api/like-list` | 新增喜好清單 |
-
 | PUT | `/api/like-list/{sn}` | 修改喜好清單 |
-
 | DELETE | `/api/like-list/{sn}` | 刪除喜好清單 |
-
 | POST | `/api/like-list/with-product` | 新增商品並加入喜好清單 |
 
-
-
-新增喜好清單 Request Body：
-
-
+新增喜好清單範例：
 
 ```json
-
 {
-
-&#x20; "account": "1111",
-
-&#x20; "no": 1,
-
-&#x20; "purchaseQuantity": 2
-
+  "account": "1111",
+  "no": 2,
+  "purchaseQuantity": 2
 }
-
 ```
 
-
-
-新增商品並加入喜好清單 Request Body：
-
-
+新增商品並加入喜好清單範例：
 
 ```json
-
 {
-
-&#x20; "productName": "新金融商品",
-
-&#x20; "price": 10000,
-
-&#x20; "feeRate": 0.05,
-
-&#x20; "account": "1111",
-
-&#x20; "purchaseQuantity": 2
-
+  "productName": "新金融商品",
+  "price": 10000,
+  "feeRate": 0.05,
+  "account": "1111",
+  "purchaseQuantity": 2
 }
-
 ```
 
+## 10. Transaction 設計
 
+系統使用 Spring `@Transactional` 管理跨資料表操作。
 
-\## 10. Transaction 設計
+### 10.1 新增商品並加入喜好清單
 
+執行流程：
 
-
-當使用者新增商品並同時加入喜好清單時，系統需要執行兩項資料庫操作：
-
-
-
-1\. 新增 `product`，取得新商品編號。
-
-2\. 新增 `like\_list`，關聯剛建立的商品。
-
-
-
-Service 使用 Spring `@Transactional` 管理交易：
-
-
-
-```java
-
-@Transactional
-
-public void addWithProduct(LikeListRequest request) {
-
-&#x20;   // 新增商品
-
-&#x20;   // 取得商品編號
-
-&#x20;   // 新增喜好清單
-
-}
-
+```text
+前端送出新增請求
+        |
+        v
+LikeListController
+        |
+        v
+LikeListService (@Transactional)
+        |
+        +-- 呼叫 sp_add_product
+        |       |
+        |       +-- 新增商品
+        |       +-- 回傳商品編號
+        |
+        +-- 呼叫 sp_add_like_list
+                |
+                +-- 新增喜好清單
 ```
 
+若新增喜好清單時發生例外，整個交易回滾，商品也不會保留。
 
+### 10.2 修改商品
 
-若第二項操作發生例外，整筆交易會回滾，避免只新增商品卻未成功建立喜好清單。
+修改商品時，除了更新 `product` 資料表，也會重新計算所有引用該商品的 `like_list` 金額。
 
+透過 Transaction 確保相關資料修改的一致性。
 
+## 11. 資料驗證與安全性
 
-修改商品時也使用 Transaction，確保商品資料與相關喜好清單金額更新的一致性。
+### 11.1 SQL Injection
 
+MyBatis Mapper 使用 `#{}` 參數綁定，避免直接將使用者輸入拼接進 SQL 指令。
 
+### 11.2 XSS
 
-\## 11. 資料驗證與安全性
+Vue 使用 `{{ }}` 顯示一般文字資料，利用框架預設的 HTML 跳脫機制降低 XSS 風險。
 
-
-
-\### SQL Injection
-
-
-
-MyBatis Mapper 使用 `#{}` 進行參數綁定，避免直接拼接使用者輸入的 SQL 字串。
-
-
-
-\### XSS
-
-
-
-Vue 使用文字插值 `{{ }}` 顯示使用者及商品資料，避免將一般輸入內容直接當成 HTML 執行。
-
-
-
-\### 資料驗證
-
-
+### 11.3 輸入驗證
 
 Stored Procedures 包含以下驗證：
 
+- 商品名稱不可為空
+- 商品價格必須大於 0
+- 手續費率必須介於 0 至 1
+- 購買數量必須大於 0
+- 扣款帳號必須存在
+- 商品必須存在
+- 修改喜好清單前確認資料存在
+- 已被喜好清單使用的商品不可直接刪除
 
+系統透過 `SIGNAL SQLSTATE '45000'` 回傳資料驗證錯誤，並由後端例外處理機制轉換為 HTTP 回應。
 
-\- 商品名稱不可為空。
+## 12. 測試方式
 
-\- 商品價格必須大於 0。
+使用 Postman 測試 RESTful API，並使用 MySQL Workbench 確認資料庫操作結果。
 
-\- 手續費率必須介於 0 與 1。
+主要測試項目：
 
-\- 購買數量必須大於 0。
+1. 商品新增、查詢、修改、刪除
+2. 喜好清單新增、查詢、修改、刪除
+3. 修改商品價格後，喜好清單金額同步更新
+4. 商品價格及購買數量輸入驗證
+5. 不存在的商品與扣款帳號驗證
+6. 商品被喜好清單引用時的刪除限制
+7. Transaction Rollback
+8. 資料庫初始化與 Stored Procedures 還原測試
 
-\- 扣款帳號必須存在。
+### Transaction Rollback 測試
 
-\- 商品必須存在。
+使用不存在的扣款帳號新增商品及喜好清單：
 
-\- 修改喜好清單前，確認資料存在。
+```json
+{
+  "productName": "Rollback測試商品",
+  "price": 10000,
+  "feeRate": 0.05,
+  "account": "NOT_EXIST",
+  "purchaseQuantity": 2
+}
+```
 
-\- 被喜好清單引用的商品不可直接刪除。
+預期結果：
 
+- API 回傳扣款帳號不存在的錯誤。
+- 商品與喜好清單不會新增成功。
+- 可透過資料庫查詢確認交易回滾。
 
-
-上述措施為目前實作的基本防護，不代表已完成完整安全性滲透測試。
-
-
-
-\## 12. 測試方式
-
-
-
-使用 Postman 測試 REST API，並透過 MySQL Workbench 檢查資料結果。
-
-
-
-測試內容包含：
-
-
-
-\- 商品 CRUD
-
-\- 喜好清單 CRUD
-
-\- 商品價格與費率修改後的金額同步
-
-\- 無效購買數量
-
-\- 不存在的商品及扣款帳號
-
-\- 被引用商品的刪除限制
-
-\- 新增商品與喜好清單失敗時的 Transaction Rollback
-
-\- 資料庫 DDL、DML 與 Stored Procedures 還原測試
-
-
-
-Transaction Rollback 測試可使用不存在的扣款帳號，確認 API 回傳錯誤後，新增的商品不會殘留在資料庫中。
-
-
-
-\## 13. 補充說明
-
-
+## 13. 補充說明
 
 本專案以金融商品喜好清單管理為實作範圍，使用預先建立的測試使用者及扣款帳號。
 
+目前未實作使用者登入、JWT 驗證、實際金融交易或真實帳戶扣款功能。
 
-
-目前未實作使用者登入、實際金融交易或真實帳戶扣款功能。
-
-
-
-本系統僅供程式設計實作與功能展示使用。
-
-
-
+本系統僅供程式設計實作及功能展示使用。
