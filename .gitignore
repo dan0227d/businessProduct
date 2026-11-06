@@ -1,0 +1,30 @@
+
+# Eclipse
+.metadata/
+.settings/
+.project
+.classpath
+
+# Java / Maven
+target/
+*.class
+
+# Vue / Node.js
+node_modules/
+dist/
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db

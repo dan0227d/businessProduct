@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.dao.ProductMapper">
+
+    <resultMap id="productMap"
+               type="com.example.demo.model.Product">
+
+        <id property="no" column="no"/>
+
+        <result property="productName"
+                column="product_name"/>
+
+        <result property="price"
+                column="price"/>
+
+        <result property="feeRate" 
+                column="fee_rate"/>
+
+    </resultMap>
+
+    <select id="findAll"
+            statementType="CALLABLE"
+            resultMap="productMap">
+
+        { CALL sp_get_all_products() }
+
+    </select>
+    
+    <!-- 新增商品 -->
+    <insert id="insert"
+        statementType="CALLABLE"
+        parameterType="com.example.demo.model.Product">
+	    { CALL sp_add_product(
+	        #{productName, mode=IN, jdbcType=VARCHAR},
+	        #{price, mode=IN, jdbcType=INTEGER},
+	        #{feeRate, mode=IN, jdbcType=DECIMAL},
+	        #{no, mode=OUT, jdbcType=INTEGER}
+	    ) }
+	</insert>
+    
+    <update id="update"
+        statementType="CALLABLE"
+        parameterType="com.example.demo.model.Product">
+	    { CALL sp_update_product(
+	        #{no, mode=IN, jdbcType=INTEGER},
+	        #{productName, mode=IN, jdbcType=VARCHAR},
+	        #{price, mode=IN, jdbcType=INTEGER},
+	        #{feeRate, mode=IN, jdbcType=DECIMAL}
+	    ) }
+	
+	</update>
+	
+	<delete id="delete" statementType="CALLABLE">
+	    { CALL sp_delete_product(
+	        #{no, mode=IN, jdbcType=INTEGER}
+	    ) }
+	
+	</delete>
+
+</mapper>
