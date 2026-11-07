@@ -17,4 +17,8 @@ public class UserService {
     public List<User> findAll() {
         return userMapper.findAll();
     }
+    
+    public List<String> findAccountsByUserid(String userid) {
+        return userMapper.findAccountsByUserid(userid);
+    }
 }

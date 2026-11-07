@@ -12,6 +12,7 @@
         <result property="username" column="username"/>
         <result property="email" column="email"/>
         <result property="account" column="account"/>
+        <result property="password" column="password"/>
 
     </resultMap>
 
@@ -22,5 +23,35 @@
         { CALL sp_get_all_users() }
 
     </select>
+    
+    <select id="findAccountsByUserid"
+        statementType="CALLABLE"
+        resultType="java.lang.String">
+        
+	    { CALL sp_get_user_accounts(
+	        #{userid, mode=IN, jdbcType=VARCHAR}
+	    ) }
+	    
+	</select>
+	
+	<select id="findByEmail"
+        statementType="CALLABLE"
+        resultMap="userMap">
+
+	    { CALL sp_get_user_by_email(
+	        #{email, mode=IN, jdbcType=VARCHAR}
+	    ) }
+	
+	</select>
+	
+	<insert id="register" statementType="CALLABLE">
+	    { CALL sp_register_user(
+	        #{userid, mode=IN, jdbcType=VARCHAR},
+	        #{username, mode=IN, jdbcType=VARCHAR},
+	        #{email, mode=IN, jdbcType=VARCHAR},
+	        #{password, mode=IN, jdbcType=VARCHAR},
+	        #{account, mode=IN, jdbcType=VARCHAR}
+	    ) }
+	</insert>
 
 </mapper>

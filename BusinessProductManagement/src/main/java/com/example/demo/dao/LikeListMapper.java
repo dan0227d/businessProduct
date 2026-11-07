@@ -18,4 +18,17 @@ public interface LikeListMapper {
     void delete(@Param("sn") Integer sn);
     
     void update(LikeList likeList);
+    
+    List<LikeListResponse> findByUserid(
+            @Param("userid") String userid);
+    
+    int checkAccountOwner(
+            @Param("userid") String userid,
+            @Param("account") String account
+    );
+
+    int checkLikeListOwner(
+            @Param("userid") String userid,
+            @Param("sn") Integer sn
+    );
 }

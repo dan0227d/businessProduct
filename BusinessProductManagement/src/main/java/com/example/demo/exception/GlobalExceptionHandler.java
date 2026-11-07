@@ -1,10 +1,12 @@
 package com.example.demo.exception;
 
 import java.sql.SQLException;
+import java.util.Map;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -61,5 +63,16 @@ public class GlobalExceptionHandler {
         }
 
         return null;
+    }
+    
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDenied(
+            AccessDeniedException e) {
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of(
+                        "status", 403,
+                        "message", e.getMessage()
+                ));
     }
 }

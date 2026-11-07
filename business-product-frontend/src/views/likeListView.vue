@@ -3,7 +3,7 @@
 import { ref, computed, onMounted } from "vue";
 import {
   getProducts,
-  getUsers,
+  getMyAccounts,
   getLikeList,
   addLikeList,
   addLikeListWithProduct,
@@ -12,7 +12,7 @@ import {
 } from "../api/apiService";
 
 const products = ref([]);
-const users = ref([]);
+const accounts = ref([]);
 const likeList = ref([]);
 
 const loading = ref(false);
@@ -106,15 +106,15 @@ async function loadData() {
   loading.value = true;
 
   try {
-    const [productsResponse, usersResponse, likeListResponse] =
+    const [productsResponse, accountsResponse, likeListResponse] =
       await Promise.all([
         getProducts(),
-        getUsers(),
+        getMyAccounts(),
         getLikeList()
       ]);
 
     products.value = productsResponse.data;
-    users.value = usersResponse.data;
+    accounts.value = accountsResponse.data;
     likeList.value = likeListResponse.data;
 
   } catch (error) {
@@ -292,12 +292,13 @@ onMounted(loadData);
             扣款帳號
             <select v-model="form.account" required>
               <option value="">請選擇帳號</option>
+
               <option
-                v-for="user in users"
-                :key="user.userid"
-                :value="user.account"
+                v-for="account in accounts"
+                :key="account"
+                :value="account"
               >
-                {{ user.username }}（{{ user.account }}）
+                {{ account }}
               </option>
             </select>
           </label>

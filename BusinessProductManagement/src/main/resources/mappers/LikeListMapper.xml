@@ -64,5 +64,33 @@
 	    ) }
 	
 	</update>
+	
+	<select id="findByUserid"
+        statementType="CALLABLE"
+        resultMap="likeListResponseMap">
+
+	    { CALL sp_get_user_like_list(
+	        #{userid, mode=IN, jdbcType=VARCHAR}
+	    ) }
+	
+	</select>
+	
+	<select id="checkAccountOwner"
+        statementType="CALLABLE"
+        resultType="java.lang.Integer">
+	    { CALL sp_check_account_owner(
+	        #{userid, mode=IN, jdbcType=VARCHAR},
+	        #{account, mode=IN, jdbcType=VARCHAR}
+	    ) }
+	</select>
+	
+	<select id="checkLikeListOwner"
+	        statementType="CALLABLE"
+	        resultType="java.lang.Integer">
+	    { CALL sp_check_like_list_owner(
+	        #{userid, mode=IN, jdbcType=VARCHAR},
+	        #{sn, mode=IN, jdbcType=INTEGER}
+	    ) }
+	</select>
 
 </mapper>
